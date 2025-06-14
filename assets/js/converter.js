@@ -31,7 +31,7 @@ function downloadLatestButton() {
 }
 
 function downloadLatestFo() {
-  downloadLatestPack("1KVo5zza");
+  downloadLatestPack("cobblemon-fabric");
 }
 
 function downloadLocalButton() {

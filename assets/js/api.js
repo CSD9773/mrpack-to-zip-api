@@ -202,11 +202,23 @@ function downloadPackData(data) {
               window.open(file.downloads[0], '_blank');
             }
           } else {
-            newZip.file(file.path, fetch(file.downloads[0]).then(function (f) {
-              return f.blob();
-            }));
+            // Create a promise for each file download and add it to the array
+            const downloadPromise = fetch(file.downloads[0])
+              .then(function (f) {
+                return f.blob();
+              })
+              .then(function (blob) {
+                // Add the file to the zip
+                newZip.file(file.path, blob);
+                return blob; // Return the blob to indicate completion
+              });
+
+            filePromises.push(downloadPromise);
           }
         }
+
+        // Wait for all downloads to complete before proceeding
+        await Promise.all(filePromises);
 
         // Update status
         const generatingMsg = "Generating final zip file...";
@@ -221,25 +233,48 @@ function downloadPackData(data) {
           const filename = manifest['name'] + '-' + manifest['versionId'] + '.zip';
 
           if (rawParam) {
-            // For raw mode (curl downloads), create a data URL and redirect to it
-            const reader = new FileReader();
-            reader.onload = function() {
-              // Set content type header for binary data
-              const contentTypeHeader = document.createElement('meta');
-              contentTypeHeader.httpEquiv = 'Content-Type';
-              contentTypeHeader.content = 'application/zip';
-              document.head.appendChild(contentTypeHeader);
+            // For raw mode (curl downloads), create a blob URL instead of data URL
+            // This is more reliable for curl downloads
+            const blobUrl = URL.createObjectURL(content);
 
-              // Set content disposition header for filename
-              const contentDispositionHeader = document.createElement('meta');
-              contentDispositionHeader.httpEquiv = 'Content-Disposition';
-              contentDispositionHeader.content = 'attachment; filename="' + filename + '"';
-              document.head.appendChild(contentDispositionHeader);
+            // Clear the document body and add a message for curl users
+            document.body.innerHTML = '<div style="text-align:center; padding:20px;">' +
+                                     '<h1>Download Ready</h1>' +
+                                     '<p>Your modpack conversion is complete.</p>' +
+                                     '<p>If download doesn\'t start automatically, please wait a moment...</p>' +
+                                     '<p>Filename: ' + filename + '</p>' +
+                                     '<p>Size: ' + Math.round(content.size / 1024 / 1024 * 100) / 100 + ' MB</p>' +
+                                     '</div>';
 
-              // Redirect to the data URL
-              window.location.href = reader.result;
-            };
-            reader.readAsDataURL(content);
+            // Set content type and disposition headers
+            const contentTypeHeader = document.createElement('meta');
+            contentTypeHeader.httpEquiv = 'Content-Type';
+            contentTypeHeader.content = 'application/zip';
+            document.head.appendChild(contentTypeHeader);
+
+            const contentDispositionHeader = document.createElement('meta');
+            contentDispositionHeader.httpEquiv = 'Content-Disposition';
+            contentDispositionHeader.content = 'attachment; filename="' + filename + '"';
+            document.head.appendChild(contentDispositionHeader);
+
+            // Create a download link and trigger it programmatically
+            const downloadLink = document.createElement('a');
+            downloadLink.href = blobUrl;
+            downloadLink.download = filename;
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+
+            // Use a longer delay to ensure all processing is complete
+            // This is especially important for curl downloads
+            setTimeout(() => {
+              // Click the download link programmatically
+              downloadLink.click();
+
+              // After a short delay, also redirect to the blob URL as a fallback
+              setTimeout(() => {
+                window.location.href = blobUrl;
+              }, 500);
+            }, 2000);
           } else {
             // Update status for browser mode
             document.getElementById('status-message').textContent = "Download complete!";

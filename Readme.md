@@ -16,12 +16,12 @@ The conversion happens in the browser and the resulting ZIP file is automaticall
 ### Converting by Project ID
 
 ```
-https://your-domain.com/?project=<project_id>
+https://csd9773.github.io/mrpack-to-zip-api/?project=<project_id>
 ```
 
 Example:
 ```
-https://your-domain.com/?project=1KVo5zza
+https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric
 ```
 
 This will convert the latest version of the specified Modrinth project (in this example, Fabulously Optimized).
@@ -29,12 +29,12 @@ This will convert the latest version of the specified Modrinth project (in this 
 ### Converting by URL
 
 ```
-https://your-domain.com/?url=<mrpack_url>
+https://csd9773.github.io/mrpack-to-zip-api/?url=<mrpack_url>
 ```
 
 Example:
 ```
-https://your-domain.com/?url=https://cdn.modrinth.com/data/example/versions/1.0.0/example-1.0.0.mrpack
+https://csd9773.github.io/mrpack-to-zip-api/?url=https://cdn.modrinth.com/data/example/versions/1.0.0/example-1.0.0.mrpack
 ```
 
 This will convert the specific .mrpack file from the provided URL.
@@ -44,21 +44,30 @@ This will convert the specific .mrpack file from the provided URL.
 To download the converted file directly using curl or wget, add the `raw=true` parameter:
 
 ```
-curl -L "https://your-domain.com/?project=<project_id>&raw=true" -o modpack.zip
+curl -L "https://csd9773.github.io/mrpack-to-zip-api/?project=<project_id>&raw=true" -o modpack.zip
 ```
 
 or
 
 ```
-curl -L "https://your-domain.com/?url=<mrpack_url>&raw=true" -o modpack.zip
+curl -L "https://csd9773.github.io/mrpack-to-zip-api/?url=<mrpack_url>&raw=true" -o modpack.zip
 ```
 
 Example:
 ```
-curl -L "https://your-domain.com/?project=1KVo5zza&raw=true" -o fabulously-optimized.zip
+curl -L "https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric&raw=true" -o fabulously-optimized.zip
 ```
 
-The `-L` flag is important as it tells curl to follow redirects, which is necessary for the download to work properly.
+Important notes for curl/wget usage:
+- The `-L` flag is essential as it tells curl to follow redirects
+- The conversion process may take some time depending on the modpack size
+- For large modpacks, consider using a longer timeout with curl: `--max-time 300` (5 minutes)
+- If you encounter issues, try adding `--connect-timeout 60` to increase the connection timeout
+
+Example with extended timeouts:
+```
+curl -L --max-time 300 --connect-timeout 60 "https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric&raw=true" -o modpack.zip
+```
 
 ## Limitations
 
