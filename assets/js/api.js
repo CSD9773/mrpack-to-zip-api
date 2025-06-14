@@ -1,5 +1,5 @@
-// API version of converter.js without GUI elements
-// This script handles modpack conversion via URL parameters
+// Pure API for converting Modrinth modpacks to ZIP format
+// No GUI elements, just conversion functionality
 
 // Constants for Modrinth API
 const mrApi = "https://api.modrinth.com/v2/project/";
@@ -9,28 +9,22 @@ const mrApiGetVersions = "/version";
 const urlParams = new URLSearchParams(window.location.search);
 const urlParam = urlParams.get('url');
 const projectParam = urlParams.get('project');
-const rawParam = urlParams.get('raw') === 'true';
+const rawParam = true; // Always use raw mode for API
 
 // Process URL parameters on page load
 document.addEventListener('DOMContentLoaded', function() {
-  // If raw mode is enabled, hide all UI elements
-  if (rawParam) {
-    document.body.innerHTML = '';
-    document.body.style.padding = '0';
-    document.body.style.margin = '0';
-  }
+  // Clear the document body - we don't need any UI elements
+  document.body.innerHTML = '';
+  document.body.style.padding = '0';
+  document.body.style.margin = '0';
 
   if (urlParam != null) {
     downloadPack(urlParam);
-  } else if (projectParam == 'fo') {
-    window.location.href = "https://download.fo/vanilla?download=latest";
   } else if (projectParam != null) {
     downloadLatestPack(projectParam);
   } else {
-    // No parameters provided, show API usage information
-    if (!rawParam) {
-      document.getElementById('api-info').style.display = 'block';
-    }
+    // No parameters provided, show simple API usage message
+    document.body.textContent = 'API Usage: ?project=<projectid> or ?url=<url modpack>';
   }
 });
 
@@ -42,12 +36,7 @@ async function downloadLatestPack(id) {
     if (!response.ok) {
       const errorMsg = "Invalid project ID or server error!";
       console.error(errorMsg);
-      if (!rawParam) {
-        document.getElementById('error-message').textContent = errorMsg;
-        document.getElementById('error-message').style.display = 'block';
-      } else {
-        document.body.textContent = errorMsg;
-      }
+      document.body.textContent = errorMsg;
       return;
     }
 
@@ -56,22 +45,12 @@ async function downloadLatestPack(id) {
     if (data == null) {
       const errorMsg = "Invalid project ID!";
       console.error(errorMsg);
-      if (!rawParam) {
-        document.getElementById('error-message').textContent = errorMsg;
-        document.getElementById('error-message').style.display = 'block';
-      } else {
-        document.body.textContent = errorMsg;
-      }
+      document.body.textContent = errorMsg;
       return;
     } else if (data[0].files[0].url == null) {
       const errorMsg = "No files found!";
       console.error(errorMsg);
-      if (!rawParam) {
-        document.getElementById('error-message').textContent = errorMsg;
-        document.getElementById('error-message').style.display = 'block';
-      } else {
-        document.body.textContent = errorMsg;
-      }
+      document.body.textContent = errorMsg;
       return;
     }
 
@@ -79,12 +58,7 @@ async function downloadLatestPack(id) {
   } catch (error) {
     const errorMsg = "An unknown error occurred: " + error.message;
     console.error(errorMsg);
-    if (!rawParam) {
-      document.getElementById('error-message').textContent = errorMsg;
-      document.getElementById('error-message').style.display = 'block';
-    } else {
-      document.body.textContent = errorMsg;
-    }
+    document.body.textContent = errorMsg;
   }
 }
 
@@ -93,42 +67,23 @@ function downloadPack(url) {
   if (url.includes("modpack")) {
     const errorMsg = "Please use the direct mrpack download URL, not the version page!";
     console.error(errorMsg);
-    if (!rawParam) {
-      document.getElementById('error-message').textContent = errorMsg;
-      document.getElementById('error-message').style.display = 'block';
-    } else {
-      document.body.textContent = errorMsg;
-    }
+    document.body.textContent = errorMsg;
     return;
   } else if (!url.includes("mrpack")) {
     const errorMsg = "That is not a valid mrpack URL.";
     console.error(errorMsg);
-    if (!rawParam) {
-      document.getElementById('error-message').textContent = errorMsg;
-      document.getElementById('error-message').style.display = 'block';
-    } else {
-      document.body.textContent = errorMsg;
-    }
+    document.body.textContent = errorMsg;
     return;
   }
 
-  // Show download status
-  const statusMsg = "Downloading modpack...";
-  if (!rawParam) {
-    document.getElementById('status-message').textContent = statusMsg;
-    document.getElementById('status-message').style.display = 'block';
-  }
+  // Log status to console
+  console.log("Downloading modpack...");
 
   JSZipUtils.getBinaryContent(url, function (err, data) {
     if (err) {
       const errorMsg = "Error downloading modpack: " + err.message;
       console.error(errorMsg);
-      if (!rawParam) {
-        document.getElementById('error-message').textContent = errorMsg;
-        document.getElementById('error-message').style.display = 'block';
-      } else {
-        document.body.textContent = errorMsg;
-      }
+      document.body.textContent = errorMsg;
       return;
     }
 
@@ -141,20 +96,12 @@ function downloadPackData(data) {
   if (data.length <= 0) {
     const errorMsg = "Empty modpack data";
     console.error(errorMsg);
-    if (!rawParam) {
-      document.getElementById('error-message').textContent = errorMsg;
-      document.getElementById('error-message').style.display = 'block';
-    } else {
-      document.body.textContent = errorMsg;
-    }
+    document.body.textContent = errorMsg;
     return;
   }
 
-  // Update status
-  const convertingMsg = "Converting modpack...";
-  if (!rawParam) {
-    document.getElementById('status-message').textContent = convertingMsg;
-  }
+  // Log status to console
+  console.log("Converting modpack...");
 
   // Start creating a new zip file
   var newZip = new JSZip();
@@ -185,23 +132,16 @@ function downloadPackData(data) {
           }
         }
 
-        // Update status
-        const downloadingMsg = "Downloading mod files...";
-        if (!rawParam) {
-          document.getElementById('status-message').textContent = downloadingMsg;
-        }
+        // Log status to console
+        console.log("Downloading mod files...");
 
         // Download all mod files
         const filePromises = [];
         for (const fileIndex in manifest.files) {
           const file = manifest.files[fileIndex];
 
-          if (file.downloads[0].includes("github.com")) {
-            // GitHub files need to be downloaded manually
-            if (!rawParam) {
-              window.open(file.downloads[0], '_blank');
-            }
-          } else {
+          // Skip GitHub files as they can't be automatically downloaded in API mode
+          if (!file.downloads[0].includes("github.com")) {
             // Create a promise for each file download and add it to the array
             const downloadPromise = fetch(file.downloads[0])
               .then(function (f) {
@@ -220,11 +160,8 @@ function downloadPackData(data) {
         // Wait for all downloads to complete before proceeding
         await Promise.all(filePromises);
 
-        // Update status
-        const generatingMsg = "Generating final zip file...";
-        if (!rawParam) {
-          document.getElementById('status-message').textContent = generatingMsg;
-        }
+        // Log status to console
+        console.log("Generating final zip file...");
 
         // Generate the final zip file
         newZip.generateAsync({
@@ -232,66 +169,27 @@ function downloadPackData(data) {
         }).then(function (content) {
           const filename = manifest['name'] + '-' + manifest['versionId'] + '.zip';
 
-          if (rawParam) {
-            // For raw mode (curl downloads), create a blob URL instead of data URL
-            // This is more reliable for curl downloads
-            const blobUrl = URL.createObjectURL(content);
+          // Set content type and disposition headers for download
+          const contentTypeHeader = document.createElement('meta');
+          contentTypeHeader.httpEquiv = 'Content-Type';
+          contentTypeHeader.content = 'application/zip';
+          document.head.appendChild(contentTypeHeader);
 
-            // Clear the document body and add a message for curl users
-            document.body.innerHTML = '<div style="text-align:center; padding:20px;">' +
-                                     '<h1>Download Ready</h1>' +
-                                     '<p>Your modpack conversion is complete.</p>' +
-                                     '<p>If download doesn\'t start automatically, please wait a moment...</p>' +
-                                     '<p>Filename: ' + filename + '</p>' +
-                                     '<p>Size: ' + Math.round(content.size / 1024 / 1024 * 100) / 100 + ' MB</p>' +
-                                     '</div>';
+          const contentDispositionHeader = document.createElement('meta');
+          contentDispositionHeader.httpEquiv = 'Content-Disposition';
+          contentDispositionHeader.content = 'attachment; filename="' + filename + '"';
+          document.head.appendChild(contentDispositionHeader);
 
-            // Set content type and disposition headers
-            const contentTypeHeader = document.createElement('meta');
-            contentTypeHeader.httpEquiv = 'Content-Type';
-            contentTypeHeader.content = 'application/zip';
-            document.head.appendChild(contentTypeHeader);
+          // Create a blob URL for the download
+          const blobUrl = URL.createObjectURL(content);
 
-            const contentDispositionHeader = document.createElement('meta');
-            contentDispositionHeader.httpEquiv = 'Content-Disposition';
-            contentDispositionHeader.content = 'attachment; filename="' + filename + '"';
-            document.head.appendChild(contentDispositionHeader);
-
-            // Create a download link and trigger it programmatically
-            const downloadLink = document.createElement('a');
-            downloadLink.href = blobUrl;
-            downloadLink.download = filename;
-            downloadLink.style.display = 'none';
-            document.body.appendChild(downloadLink);
-
-            // Use a longer delay to ensure all processing is complete
-            // This is especially important for curl downloads
-            setTimeout(() => {
-              // Click the download link programmatically
-              downloadLink.click();
-
-              // After a short delay, also redirect to the blob URL as a fallback
-              setTimeout(() => {
-                window.location.href = blobUrl;
-              }, 500);
-            }, 2000);
-          } else {
-            // Update status for browser mode
-            document.getElementById('status-message').textContent = "Download complete!";
-
-            // Trigger browser download
-            saveAs(content, filename);
-          }
+          // Redirect to the blob URL to trigger download
+          window.location.href = blobUrl;
         });
       } catch (error) {
         const errorMsg = "Error processing modpack: " + error.message;
         console.error(errorMsg);
-        if (!rawParam) {
-          document.getElementById('error-message').textContent = errorMsg;
-          document.getElementById('error-message').style.display = 'block';
-        } else {
-          document.body.textContent = errorMsg;
-        }
+        document.body.textContent = errorMsg;
       }
     });
 }

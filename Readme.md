@@ -1,6 +1,6 @@
 # Modrinth Pack to ZIP API
 
-A simple API for converting Modrinth modpacks (.mrpack) to standard ZIP format.
+A pure API for converting Modrinth modpacks (.mrpack) to standard ZIP format.
 
 ## Overview
 
@@ -24,7 +24,7 @@ Example:
 https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric
 ```
 
-This will convert the latest version of the specified Modrinth project (in this example, Fabulously Optimized).
+This will convert the latest version of the specified Modrinth project and download it as a ZIP file.
 
 ### Converting by URL
 
@@ -37,25 +37,25 @@ Example:
 https://csd9773.github.io/mrpack-to-zip-api/?url=https://cdn.modrinth.com/data/example/versions/1.0.0/example-1.0.0.mrpack
 ```
 
-This will convert the specific .mrpack file from the provided URL.
+This will convert the specific .mrpack file from the provided URL and download it as a ZIP file.
 
 ### Using with curl or wget
 
-To download the converted file directly using curl or wget, add the `raw=true` parameter:
+To download the converted file directly using curl or wget:
 
 ```
-curl -L "https://csd9773.github.io/mrpack-to-zip-api/?project=<project_id>&raw=true" -o modpack.zip
+curl -L "https://csd9773.github.io/mrpack-to-zip-api/?project=<project_id>" -o modpack.zip
 ```
 
 or
 
 ```
-curl -L "https://csd9773.github.io/mrpack-to-zip-api/?url=<mrpack_url>&raw=true" -o modpack.zip
+curl -L "https://csd9773.github.io/mrpack-to-zip-api/?url=<mrpack_url>" -o modpack.zip
 ```
 
 Example:
 ```
-curl -L "https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric&raw=true" -o fabulously-optimized.zip
+curl -L "https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric" -o modpack.zip
 ```
 
 Important notes for curl/wget usage:
@@ -66,13 +66,14 @@ Important notes for curl/wget usage:
 
 Example with extended timeouts:
 ```
-curl -L --max-time 300 --connect-timeout 60 "https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric&raw=true" -o modpack.zip
+curl -L --max-time 300 --connect-timeout 60 "https://csd9773.github.io/mrpack-to-zip-api/?project=cobblemon-fabric" -o modpack.zip
 ```
 
 ## Limitations
 
 - Due to CORS restrictions, some mods hosted outside of Modrinth may not download properly
-- GitHub-hosted files will open in a new tab and need to be manually added to the mods folder
+- GitHub-hosted files are skipped in the conversion process
+- The API is designed for programmatic use and has no web interface
 
 ## Credits
 
